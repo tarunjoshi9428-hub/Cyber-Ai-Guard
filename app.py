@@ -638,8 +638,9 @@ elif menu_selection == NAV_QR:
                         domain = urllib.parse.urlparse(decoded_url).netloc
                         
                         # LAYER 1: VirusTotal
+                       # LAYER 1: VirusTotal
                         url_id = base64.urlsafe_b64encode(decoded_url.encode()).decode().replace("=", "")
-                        vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers={"x-apikey":"7488fcbaba5fdc95a2b9baf5a6f5f4344748ed3ca5717021205bd977b09b29ef"})
+                        vt_res = requests.get(f"https://www.virustotal.com/api/v3/urls/{url_id}", headers={"x-apikey": st.secrets["VIRUSTOTAL_API_KEY"]})
                         
                         vt_report = "No database record found."
                         is_dangerous = False
