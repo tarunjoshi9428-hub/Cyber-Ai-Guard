@@ -1,4 +1,10 @@
 streamlit
-google-generativeai
+zxcvbn
 requests
-reportlab
+google-generativeai
+beautifulsoup4
+Pillow
+numpy
+opencv-python-headless
+fpdf
+pandas
