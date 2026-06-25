@@ -1586,7 +1586,7 @@ elif menu_selection == NAV_NETWORK:
                     st.error(f"Failed to compile structural network scan: {e}")
 
 
-        # --- TOOL: AI SECURITY ASSISTANT ---
+# --- TOOL: AI SECURITY ASSISTANT ---
 elif menu_selection == NAV_AI:
   
     render_tool_intro(
@@ -1637,8 +1637,77 @@ elif menu_selection == NAV_AI:
                     st.session_state.messages.append({"role": "assistant", "content": full_response})
                 except Exception as e:
                     st.error(f"Error: {e}")
-    elif current_nav == NAV_QUIZ:
-     render_tool_intro(
+
+
+# --- TOOL 13: AI SECURITY QUESTIONS QUIZ ---
+elif menu_selection == NAV_QUIZ:
+    st.title(f"{NAV_QUIZ}")
+    st.write("Test your cybersecurity knowledge with real-time, dynamic multiple-choice questions generated completely by Gemini AI.")
+
+    import json
+    import re
+    import time
+
+    # Initialize Session States so the quiz state stays stable across clicks
+    if "quiz_questions" not in st.session_state:
+        st.session_state.quiz_questions = None
+    if "quiz_submitted" not in st.session_state:
+        st.session_state.quiz_submitted = False
+    if "quiz_topic" not in st.session_state:
+        st.session_state.quiz_topic = "General Cybersecurity"
+
+    # 1. Topic Selector
+    selected_topic = st.selectbox(
+        "Select Quiz Topic:",
+        ["General Cybersecurity", "Phishing & Social Engineering", "Network Security", "Password & Identity Safety", "Malware & Ransomware"]
+    )
+
+    # If user changes the topic, reset the quiz state
+    if selected_topic != st.session_state.quiz_topic:
+        st.session_state.quiz_topic = selected_topic
+        st.session_state.quiz_questions = None
+        st.session_state.quiz_submitted = False
+
+    # Button to generate the quiz
+    if st.button("🔄 Generate Fresh AI Quiz", key="gen_quiz_btn") or st.session_state.quiz_questions is None:
+        with st.spinner(f"Gemini AI is crafting unique questions about {selected_topic}..."):
+            try:
+                genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
+                model = genai.GenerativeModel('gemini-2.5-flash')
+                
+                # We force Gemini to output raw JSON so our Python code can parse the MCQs cleanly
+                prompt = f"""
+                You are a Cybersecurity Professor. Create exactly 3 multiple-choice questions (MCQs) regarding: "{selected_topic}".
+                Each question must have exactly 4 options.
+                
+                You must return your output ONLY as a valid JSON array. Do not include any introductory or concluding text.
+                Format structure:
+                [
+                  {{
+                    "question": "The question text here?",
+                    "options": ["Option A", "Option B", "Option C", "Option D"],
+                    "correct_index": 0,
+                    "explanation": "Why this option is correct."
+                  }}
+                ]
+                Note: correct_index must be an integer from 0 to 3 matching the correct option index.
+                """
+
+                response_text = model.generate_content(prompt).text
+                
+                # Clean up any potential markdown wrappers (like ```json ... ```) that AI sometimes adds
+                clean_json_text = re.sub(r"```json\s*|\s*```", "", response_text).strip()
+                
+                # Parse JSON and save it to the app's session memory
+                st.session_state.quiz_questions = json.loads(clean_json_text)
+                st.session_state.quiz_submitted = False
+                st.rerun() # Refresh to draw the quiz elements cleanly
+                
+            except Exception as e:
+                st.error(f"Failed to generate quiz. Please try again. Error: {e}")
+
+elif current_nav == NAV_QUIZ:
+    render_tool_intro(
         "🧠 AI Security Quiz",
         "Test your cybersecurity knowledge. Enter any topic, and our AI will generate a custom 3-question evaluation.",
         "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
