@@ -1639,74 +1639,76 @@ elif menu_selection == NAV_AI:
                     st.error(f"Error: {e}")
 
 
-# --- TOOL 13: AI SECURITY QUESTIONS QUIZ ---
-elif menu_selection == NAV_QUIZ:
-    st.title(f"{NAV_QUIZ}")
-    st.write("Test your cybersecurity knowledge with real-time, dynamic multiple-choice questions generated completely by Gemini AI.")
+elif current_nav == NAV_QUIZ:
+    render_tool_intro(
+        "🧠 AI Security Quiz",
+        "Test your cybersecurity knowledge. Enter any topic, and our AI will generate a custom 3-question evaluation.",
+        "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
+        ["Customized threat scenarios", "Immediate feedback and explanations", "Downloadable certification scorecard"],
+        "Powered by Gemini AI. Context is automatically mapped to cybersecurity domains."
+    )
 
-    import json
-    import re
-    import time
-
-    # Initialize Session States so the quiz state stays stable across clicks
+    # Initialize Session States for Quiz
     if "quiz_questions" not in st.session_state:
         st.session_state.quiz_questions = None
     if "quiz_submitted" not in st.session_state:
         st.session_state.quiz_submitted = False
     if "quiz_topic" not in st.session_state:
-        st.session_state.quiz_topic = "General Cybersecurity"
+        st.session_state.quiz_topic = ""
 
-    # 1. Topic Selector
-    selected_topic = st.selectbox(
-        "Select Quiz Topic:",
-        ["General Cybersecurity", "Phishing & Social Engineering", "Network Security", "Password & Identity Safety", "Malware & Ransomware"]
-    )
+    # 1. Topic Input and AI Generation
+    topic_input = st.text_input("Enter a topic (e.g., 'Phishing', 'Passwords', 'SMS', 'Cloud'):", placeholder="Type a topic here...")
+    
+    if st.button("Generate Quiz", type="primary"):
+        if not topic_input:
+            st.warning("Please enter a topic first.")
+        else:
+            with st.spinner("🧠 AI is building your custom security assessment..."):
+                try:
+                    # THE UPGRADED AI LOGIC: Forcing the Cybersecurity Context
+                    prompt = f"""
+                    You are a strict Cybersecurity Training Instructor. The user wants a 3-question multiple-choice quiz about: '{topic_input}'.
+                    
+                    CRITICAL INSTRUCTION: You MUST map this topic to a cybersecurity threat, defense, or privacy context. 
+                    - If they type "SMS", make the quiz about "SMS Phishing (Smishing)".
+                    - If they type "Coffee", make it about "Public Wi-Fi risks at coffee shops".
+                    - NEVER reject a topic. Always find the security angle.
 
-    # If user changes the topic, reset the quiz state
-    if selected_topic != st.session_state.quiz_topic:
-        st.session_state.quiz_topic = selected_topic
-        st.session_state.quiz_questions = None
-        st.session_state.quiz_submitted = False
+                    Return EXACTLY this JSON format and nothing else. No markdown blocks, just raw JSON:
+                    [
+                        {{
+                            "question": "The question text?",
+                            "options": ["A", "B", "C", "D"],
+                            "correct_index": 0,
+                            "explanation": "Why this is correct."
+                        }}
+                    ]
+                    Ensure there are exactly 3 questions.
+                    """
+                    
+                    model = genai.GenerativeModel('gemini-pro')
+                    response = model.generate_content(prompt)
+                    
+                    # Clean the JSON response
+                    raw_text = response.text.strip()
+                    if raw_text.startswith("```json"):
+                        raw_text = raw_text[7:]
+                    if raw_text.endswith("```"):
+                        raw_text = raw_text[:-3]
+                        
+                    import json
+                    questions = json.loads(raw_text)
+                    
+                    # Save to session state
+                    st.session_state.quiz_questions = questions
+                    st.session_state.quiz_topic = topic_input
+                    st.session_state.quiz_submitted = False
+                    st.rerun()
+                    
+                except Exception as e:
+                    st.error(f"⚠️ Failed to generate quiz. Try a slightly different word. Error details: {e}")
 
-    # Button to generate the quiz
-    if st.button("🔄 Generate Fresh AI Quiz", key="gen_quiz_btn") or st.session_state.quiz_questions is None:
-        with st.spinner(f"Gemini AI is crafting unique questions about {selected_topic}..."):
-            try:
-                genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
-                model = genai.GenerativeModel('gemini-2.5-flash')
-                
-                # We force Gemini to output raw JSON so our Python code can parse the MCQs cleanly
-                prompt = f"""
-                You are a Cybersecurity Professor. Create exactly 3 multiple-choice questions (MCQs) regarding: "{selected_topic}".
-                Each question must have exactly 4 options.
-                
-                You must return your output ONLY as a valid JSON array. Do not include any introductory or concluding text.
-                Format structure:
-                [
-                  {{
-                    "question": "The question text here?",
-                    "options": ["Option A", "Option B", "Option C", "Option D"],
-                    "correct_index": 0,
-                    "explanation": "Why this option is correct."
-                  }}
-                ]
-                Note: correct_index must be an integer from 0 to 3 matching the correct option index.
-                """
-
-                response_text = model.generate_content(prompt).text
-                
-                # Clean up any potential markdown wrappers (like ```json ... ```) that AI sometimes adds
-                clean_json_text = re.sub(r"```json\s*|\s*```", "", response_text).strip()
-                
-                # Parse JSON and save it to the app's session memory
-                st.session_state.quiz_questions = json.loads(clean_json_text)
-                st.session_state.quiz_submitted = False
-                st.rerun() # Refresh to draw the quiz elements cleanly
-                
-            except Exception as e:
-                st.error(f"Failed to generate quiz. Please try again. Error: {e}")
-
-# 2. Render the Quiz if questions are loaded
+    # 2. Render the Quiz if questions are loaded
     if st.session_state.quiz_questions:
         st.markdown(f"### 📝 Topic: {st.session_state.quiz_topic}")
         st.write("Answer the questions below and click 'Submit Answers' to see your score.")
