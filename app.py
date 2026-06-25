@@ -1638,7 +1638,7 @@ elif menu_selection == NAV_AI:
                 except Exception as e:
                     st.error(f"Error: {e}")
     elif current_nav == NAV_QUIZ:
-    render_tool_intro(
+     render_tool_intro(
         "🧠 AI Security Quiz",
         "Test your cybersecurity knowledge. Enter any topic, and our AI will generate a custom 3-question evaluation.",
         "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
