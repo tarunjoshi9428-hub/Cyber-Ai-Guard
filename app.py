@@ -417,10 +417,10 @@ with st.sidebar:
     st.markdown(
         """
         <div class="sidebar-status">
-            <strong>"Your intelligent command center for proactive threat detection and real-time defense.
+            <strong>➡️ "Your intelligent command center for proactive threat detection and real-time defense.
 Powered by advanced AI to secure your digital footprint across all vectors."</strong><br>
-            "Defending your networks, data, and identities at the speed of AI."<br>
-            "Leverage AI-driven insights to stay one step ahead of emerging cyber threats."        
+            ➡️ "Defending your networks, data, and identities at the speed of AI."<br>
+            ➡️ "Leverage AI-driven insights to stay one step ahead of emerging cyber threats."        
             </div>
         """,
         unsafe_allow_html=True,
