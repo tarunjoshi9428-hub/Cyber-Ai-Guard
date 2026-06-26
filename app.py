@@ -1772,7 +1772,7 @@ elif current_nav == NAV_QUIZ:
                     st.session_state.quiz_submitted = False
                     st.rerun()
                 except Exception as e:
-                error_msg = str(e)
+                 error_msg = str(e)
                  if "429" in error_msg or "Quota" in error_msg:
                         st.warning("⏳ The AI engine is currently cooling down to prevent spam. Please wait 30 seconds and click Generate again.")
                   else:
