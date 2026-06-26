@@ -1643,7 +1643,7 @@ elif menu_selection == NAV_AI:
 elif menu_selection == NAV_QUIZ:
     render_tool_intro(
         "🧠 AI Security Quiz",
-        "Test your cybersecurity knowledge. Enter any topic, and our AI will generate a custom 3-question evaluation.",
+        "Test your cybersecurity knowledge. Select a standard topic or enter a custom one, and our AI will generate a unique 3-question evaluation.",
         "https://images.unsplash.com/photo-1550751827-4bd374c3f58b?auto=format&fit=crop&w=1200&q=80",
         ["Customized threat scenarios", "Immediate feedback and explanations", "Downloadable certification scorecard"],
         "Powered by Gemini AI. Context is automatically mapped to cybersecurity domains."
@@ -1660,21 +1660,39 @@ elif menu_selection == NAV_QUIZ:
     if "quiz_topic" not in st.session_state:
         st.session_state.quiz_topic = ""
 
-    # 1. Topic Input and AI Generation
-    topic_input = st.text_input("Enter a topic (e.g., 'Phishing', 'Passwords', 'SMS', 'Cloud'):", placeholder="Type a topic here...")
+    # 1. Topic Input (Dropdown + Custom Text Box)
+    st.markdown("### Choose Your Subject")
     
-    if st.button("Generate Quiz", type="primary"):
-        if not topic_input:
-            st.warning("Please enter a topic first.")
+    selected_topic = st.selectbox(
+        "Select Quiz Topic:",
+        [
+            "General Cybersecurity", 
+            "Phishing & Social Engineering", 
+            "Network Security", 
+            "Password & Identity Safety", 
+            "Malware & Ransomware", 
+            "Custom Topic (Type your own)"
+        ]
+    )
+
+    # Show the text box ONLY if they choose "Custom Topic"
+    if selected_topic == "Custom Topic (Type your own)":
+        final_topic = st.text_input("Enter a custom topic (e.g., 'SMS', 'Coffee Shop WiFi', 'Cloud'):", placeholder="Type a topic here...")
+    else:
+        final_topic = selected_topic
+    
+    if st.button("🔄 Generate Quiz", type="primary"):
+        if not final_topic:
+            st.warning("⚠️ Please type a topic in the custom box first.")
         else:
-            with st.spinner("🧠 AI is building your custom security assessment..."):
+            with st.spinner(f"🧠 AI is building your custom security assessment on {final_topic}..."):
                 try:
                     # Configure API
                     genai.configure(api_key=st.secrets["GEMINI_API_KEY"])
                     
                     # THE UPGRADED AI LOGIC: Forcing the Cybersecurity Context
                     prompt = f"""
-                    You are a strict Cybersecurity Training Instructor. The user wants a 3-question multiple-choice quiz about: '{topic_input}'.
+                    You are a strict Cybersecurity Training Instructor. The user wants a 3-question multiple-choice quiz about: '{final_topic}'.
                     
                     CRITICAL INSTRUCTION: You MUST map this topic to a cybersecurity threat, defense, or privacy context. 
                     - If they type "SMS", make the quiz about "SMS Phishing (Smishing)".
@@ -1705,7 +1723,7 @@ elif menu_selection == NAV_QUIZ:
                     
                     # Save to session state
                     st.session_state.quiz_questions = questions
-                    st.session_state.quiz_topic = topic_input
+                    st.session_state.quiz_topic = final_topic
                     st.session_state.quiz_submitted = False
                     st.rerun()
                     
