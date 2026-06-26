@@ -1775,7 +1775,7 @@ elif current_nav == NAV_QUIZ:
                  error_msg = str(e)
                  if "429" in error_msg or "Quota" in error_msg:
                         st.warning("⏳ The AI engine is currently cooling down to prevent spam. Please wait 30 seconds and click Generate again.")
-                  else:
+                 else:
                         st.error(f"⚠️ Failed to generate quiz. Try a slightly different word. Error details: {e}")
 
     # 2. Render the Quiz if questions are loaded
