@@ -1771,9 +1771,12 @@ elif current_nav == NAV_QUIZ:
                     st.session_state.quiz_topic = topic_input
                     st.session_state.quiz_submitted = False
                     st.rerun()
-                    
-                except Exception as e:
-                    st.error(f"⚠️ Failed to generate quiz. Try a slightly different word. Error details: {e}")
+                    except Exception as e:
+                    error_msg = str(e)
+                    if "429" in error_msg or "Quota" in error_msg:
+                        st.warning("⏳ The AI engine is currently cooling down to prevent spam. Please wait 30 seconds and click Generate again.")
+                    else:
+                        st.error(f"⚠️ Failed to generate quiz. Try a slightly different word. Error details: {e}")
 
     # 2. Render the Quiz if questions are loaded
     if st.session_state.quiz_questions:
